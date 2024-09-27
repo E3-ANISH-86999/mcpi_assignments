@@ -20,32 +20,39 @@
 #include <stdio.h>
 #include "stm32f4xx.h"
 #include "system_stm32f4xx.h"
-#include "uart_cw.h"
+#include "my_Icd_i2c.h"
+#include "uart.h"
+#include "accel.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-int main(void) {
+int main(void)
+{
 	char str[32];
+	LIS_Data val;
+	int ret;
 	SystemInit();
-	SwitchInit();
-	UartInit(9600);
-	UartPuts("Press the switch!\r\n");
+	LIS_Init();
 
-	int count = 1;
-	while(1){
-		while(flag == 0)
-			;
-		DelayMs(200);
-		sprintf(str, "count:%d\r\n", count);
-		UartPuts(str);
-		count++;
-		flag=0;
+	ret = Lcd_Init();
+	if(ret){
+		while(1){
+			if(LIS_IsDataAvail()){
+				val= LIS_GetData();
+				sprintf(str, "X=%-5d Y=%-5d",val.x,val.y);
+				Lcd_Puts(LCD_LINE1,str);
+				sprintf(str, "Z=%-5d", val.z);
+				Lcd_Puts(LCD_LINE2, str);
+				}
+			DelayMs(1000);
+		}
 	}
-
 	return 0;
 }
+
+
 
 
 

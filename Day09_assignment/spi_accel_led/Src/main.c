@@ -20,32 +20,45 @@
 #include <stdio.h>
 #include "stm32f4xx.h"
 #include "system_stm32f4xx.h"
-#include "uart_cw.h"
+
+#include "led.h"
+#include "accel.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-int main(void) {
-	char str[32];
+int main(void)
+{
+	//char str[32];
+	LIS_Data val;
 	SystemInit();
-	SwitchInit();
-	UartInit(9600);
-	UartPuts("Press the switch!\r\n");
-
-	int count = 1;
+	LedInit(LED_GREEN_PIN);
+	LedInit(LED_ORANGE_PIN);
+	LedInit(LED_BLUE_PIN);
+	LedInit(LED_RED_PIN);
+	//UartInit(9600);
+	//UartPuts("Lis3dsh Accel Demo!\r\n");
+	LIS_Init();
 	while(1){
-		while(flag == 0)
-			;
-		DelayMs(200);
-		sprintf(str, "count:%d\r\n", count);
-		UartPuts(str);
-		count++;
-		flag=0;
+		if(LIS_IsDataAvail())
+		{
+			val= LIS_GetData();
+
+			(val.x<-1000)?(LedOn(LED_GREEN_PIN)):(LedOff(LED_GREEN_PIN));
+			(val.x>1000)?(LedOn(LED_RED_PIN)):(LedOff(LED_RED_PIN));
+			(val.y>1000)?(LedOn(LED_ORANGE_PIN)):(LedOff(LED_ORANGE_PIN));
+			(val.y<-1000)?(LedOn(LED_BLUE_PIN)):(LedOff(LED_BLUE_PIN));
+
+		}
+		DelayMs(100);
 	}
+
 
 	return 0;
 }
+
+
 
 
 
